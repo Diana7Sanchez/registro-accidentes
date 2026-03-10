@@ -97,7 +97,39 @@
         .btn-now, .btn-gps { background: var(--color-secundario); color: white; border: none; border-radius: 5px; padding: 8px 12px; cursor: pointer; font-weight: bold; margin-bottom: 5px; }
         
         .file-input-container { background: var(--color-acentos); color: #333; padding: 15px; border-radius: 8px; margin-top: 20px; text-align: center; }
-    </style>
+   
+   .header{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+}
+
+.header img{
+    height:90px;
+    max-width:100%;
+}
+
+.header h2{
+    text-align:center;
+    margin:5px 0 0 0;
+}
+
+/* Ajuste celular */
+@media (max-width:768px){
+
+.header img{
+    height:40px !important;
+}
+
+.header h2{
+    font-size:15px;
+    line-height:1.2;
+    padding:0 10px;
+}
+
+}
+   </style>
 </head>
 <body>
 
