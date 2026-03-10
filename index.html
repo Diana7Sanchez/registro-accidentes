@@ -482,6 +482,9 @@ document.getElementById('km').addEventListener('input', function (e) {
 
 // --- GPS Y MAPA ---
 const map = L.map('map').setView([23.6, -102.5], 5);
+setTimeout(() => {
+    map.invalidateSize();
+}, 500);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 let marker;
 
