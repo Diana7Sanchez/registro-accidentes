@@ -1,0 +1,585 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro Técnico de Accidentes v7.0</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
+    <style>
+        :root {
+            --color-primario: #611232;
+            --color-secundario: #a57f2c;
+            --color-botones: #002f2a;
+            --color-texto: #ffffff;
+            --color-acentos: #ffdca8;
+            --color-gn: #1b262c;
+        }
+
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f4f4; margin: 0; }
+        .header { background: white; padding: 15px; text-align: center; border-bottom: 3px solid var(--color-secundario); }
+        
+        .header img { 
+    height: 90px !important; 
+    width: auto; 
+    display: block; 
+    margin: 0 auto 10px auto; 
+}
+        .form-container { max-width: 1100px; margin: 20px auto; background: var(--color-primario); padding: 30px; border-radius: 12px; color: var(--color-texto); box-shadow: 0 10px 25px rgba(0,0,0,0.4); }
+        
+        h2, h3, h4 { color: var(--color-acentos); text-transform: uppercase; border-bottom: 1px solid var(--color-secundario); padding-bottom: 5px; }
+        label { font-weight: bold; display: block; margin-top: 15px; color: var(--color-acentos); font-size: 0.85em; text-transform: uppercase; }
+        input, select, textarea { width: 100%; padding: 10px; margin: 5px 0; border: 1px solid var(--color-secundario); border-radius: 6px; box-sizing: border-box; }
+        
+        .sub-seccion { background: rgba(255,255,255,0.08); padding: 20px; border-left: 6px solid var(--color-secundario); margin: 15px 0; border-radius: 6px; }
+        .seccion-gn { background: var(--color-gn); border: 2px solid gold; padding: 25px; margin-top: 30px; border-radius: 8px; }
+        
+        .map-row { display: flex; gap: 15px; margin: 20px 0; min-height: 400px; }
+        #map { flex: 7; border-radius: 8px; border: 2px solid var(--color-secundario); height: 400px; }
+        .coord-panel { flex: 3; background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px; display: flex; flex-direction: column; justify-content: center; }
+
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; }
+        .hidden { display: none; }
+        
+        .btn-submit { background: var(--color-botones); color: white; padding: 20px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 18px; margin-top: 25px; border: 1px solid var(--color-secundario); }
+        .btn-now, .btn-gps { background: var(--color-secundario); color: white; border: none; border-radius: 5px; padding: 8px 12px; cursor: pointer; font-weight: bold; margin-bottom: 5px; }
+        
+        .file-input-container { background: var(--color-acentos); color: #333; padding: 15px; border-radius: 8px; margin-top: 20px; text-align: center; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <img src="logo_sict.png" alt="Logo SICT">
+    <h2 style="color: #a57f2c; margin: 0; font-family: 'Times New Roman', serif;">
+        Registro de Incidentes y Accidentes en Carretera
+    </h2>
+</div>
+
+<div class="form-container">
+  <form id="AccidentForm">
+    
+    <div class="grid-2">
+      <div>
+        <label>Instancia Supervisa</label>
+        <select id="supervisa_select">
+          <option value="">Seleccione...</option>
+          <option value="GN">Guardia Nacional</option>
+          <option value="CAPUFE">CAPUFE</option>
+          <option value="DGST">Dirección General de Servicios Técnicos</option>
+          <option value="AMIS">Asociación Mexicana de Instituciones de Seguros (AMIS)</option>
+          <option value="ESTATAL">Policía Estatal</option>
+          <option value="CIPAL">Policía Municipal</option>
+        </select>
+      </div>
+      <div>
+<label>ID / Folio (Dictamen No)</label>
+<input type="text" id="dictamen_no" placeholder="Ej. CAPUFE-2026-001" required>
+</div>
+    </div>
+
+    <div class="grid-2">
+      <div><label>Fecha</label><input type="date" id="fecha"></div>
+      <div>
+        <label>Hora</label>
+        <div style="display:flex; gap:5px;"><input type="time" id="hora"><button type="button" class="btn-now" onclick="setNow()">AHORA</button></div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+        <div>
+<label>Carretera</label>
+<input type="text" id="carretera" placeholder="Ej. MEX-150D México – Puebla">
+</div>
+        <div>
+<label>Tramo</label>
+<input type="text" id="tramo" placeholder="Ej. Puebla – Acatzingo">
+</div>
+    </div>
+
+    <div class="grid-3">
+        <div>
+<label>Ruta</label>
+<input type="text" id="ruta" placeholder="Ej. Ruta 150D">
+</div>
+        <div><label>Km + m</label><input type="text" id="km" placeholder="000+000" maxlength="7"></div>
+        <div>
+            <label for="tipohecho">Tipo Hecho de Tránsito</label>
+            <select id="tipohecho" onchange="actualizarHechos()" required>
+                <option value="">Seleccione...</option>
+                <option value="atropellamiento">Atropellamiento</option>
+                <option value="choque">Choque</option>
+                <option value="volcadura">Volcadura</option>
+                <option value="derrape">Derrape</option>
+                <option value="caidaPasajero">Caída del pasajero</option>
+            </select>
+        </div>
+    </div>
+
+    <div id="contenedor-filtros" class="hidden sub-seccion">
+        <div id="f-atrop" class="hidden">
+            <label>Subtipo Atropellamiento:</label>
+            <select onchange="checkPersona(this.value)">
+                <option value="">Seleccione...</option>
+                <option value="persona">Persona</option>
+                <option value="semoviente">Semoviente</option>
+            </select>
+        </div>
+        <div id="f-choque" class="hidden">
+            <label>Detalle Choque:</label>
+            <select onchange="checkPersona('persona')">
+                <option value="">Seleccione...</option>
+                <option value="objetoFijo">Objeto fijo</option>
+                <option value="alcance">Por alcance</option>
+                <option value="frente">De frente</option>
+                <option value="lateral">Lateral</option>
+                <option value="vehiculoEstacionado">Vehículo estacionado</option>
+            </select>
+        </div>
+        <div id="seccion-heridos" class="hidden">
+            <label>Número de heridos:</label>
+            <input type="number" id="num_heridos" min="0" value="0" oninput="dibujarHeridos()">
+            <div id="lista-heridos"></div>
+            <label>Número de fallecidos:</label>
+            <input type="number" id="fallecidos" min="0" value="0">
+        </div>
+    </div>
+
+    <div class="map-row">
+        <div id="map"></div>
+        <div class="coord-panel">
+            <button type="button" class="btn-gps" onclick="getGPS()">📍 OBTENER GPS</button>
+            <label>Latitud</label><input type="text" id="lat" readonly>
+            <label>Longitud</label><input type="text" id="lng" readonly>
+            <label>Estado</label><input type="text" id="estado" readonly>
+            <label>Municipio</label><input type="text" id="municipio">
+        </div>
+    </div>
+
+    <hr>
+    
+    <h3>Vehículos e Involucrados</h3>
+    <div class="grid-2">
+        <div>
+            <label>Cantidad de Vehículos</label>
+            <input type="number" id="num_veh" min="0" onchange="renderVehiculos()">
+            
+            <label>Probables Causas</label>
+            <select id="causa_select" onchange="toggleCausaOtro(this)">
+                <option value="">Seleccione...</option>
+                <option value="excesoCarga">Exceso de carga</option>
+                <option value="imperfecciones">Imperfecciones del camino</option>
+                <option value="incendio">Incendio</option>
+                <option value="otros">Otros</option>
+            </select>
+            <div id="otro-causa" class="hidden">
+                <input type="text" id="otra_causa_input" placeholder="Especifique causa">
+            </div>
+        </div>
+        
+        <div>
+            <label>Total Participantes</label>
+            <input type="number" id="total_participantes">
+
+            <label>Circunstancias del Conductor</label>
+            <select id="circ_select" onchange="toggleCircOtro(this)">
+                <option value="">Seleccione...</option>
+                <option value="velocidad">Velocidad excesiva</option>
+                <option value="ebriedad">Estado de ebriedad</option>
+                <option value="dormitando">Dormitando</option>
+                <option value="distraccion">Uso de celular/distracción</option>
+                <option value="Otra">Otra</option>
+            </select>
+            <div id="otro-circ" class="hidden">
+                <input type="text" id="otra_circ_input" placeholder="Especifique circunstancia">
+            </div>
+        </div>
+    </div>
+
+    <div id="cont-vehiculos"></div>
+
+   <div id="seccion_gn" class="hidden seccion-gn">
+    <h2 style="color: gold; text-align:center;">ANEXO TÉCNICO EXCLUSIVO GN</h2>
+    
+    <div class="sub-seccion">
+        <h4>Control e Institución</h4>
+        <div class="grid-3">
+            <div><label>Coordinación</label><input type="text" id="coordinacion"></div>
+            <div><label>Estación</label><input type="text" id="estacion"></div>
+            <div><label>Folio IPH</label><input type="text" id="folio_iph"></div>
+        </div>
+        <div class="grid-2">
+            <div><label>Expediente</label><input type="text" id="expediente_gn"></div>
+            <div><label>No. de Dictamen</label><input type="text" id="dictamen_f_no"></div>
+        </div>
+    </div>
+
+    <div class="sub-seccion">
+        <h4>Clasificación del Hecho de Tránsito</h4>
+        <div class="grid-2">
+            <div>
+                <label>Tipo de Siniestro</label>
+                <select id="clasificacion_hecho">
+                    <option value="Salida del camino">Salida del camino</option>
+                    <option value="Volcadura">Volcadura</option>
+                    <option value="Choque de frente">Choque de frente</option>
+                    <option value="Choque lateral">Choque lateral</option>
+                    <option value="Choque por alcance">Choque por alcance</option>
+                    <option value="Atropellamiento">Atropellamiento</option>
+                    <option value="Incendio">Incendio</option>
+                </select>
+            </div>
+            <div>
+                <label>Tipo de Pavimento</label>
+                <select id="tipo_pavimento">
+                    <option value="Asfalto">Asfalto</option>
+                    <option value="Concreto hidráulico">Concreto hidráulico</option>
+                    <option value="Terraceria">Terracería</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="sub-seccion">
+        <h4>Factores Determinantes</h4>
+        <div class="grid-3">
+            <div>
+                <label>Factor Conductor</label>
+                <select id="f_conductor">
+                    <option value="Velocidad excesiva">Velocidad excesiva</option>
+                    <option value="No guardo distancia">No guardó distancia</option>
+                    <option value="Estado de ebriedad">Estado de ebriedad</option>
+                    <option value="Imprudencia">Imprudencia</option>
+                </select>
+            </div>
+            <div>
+                <label>Factor Camino</label>
+                <select id="f_camino">
+                    <option value="Ninguno">Sin desperfectos</option>
+                    <option value="Mojado">Mojado</option>
+                    <option value="Falta de señales">Falta de señales</option>
+                    <option value="Objetos en el camino">Objetos en el camino</option>
+                </select>
+            </div>
+            <div>
+                <label>Factor Vehículo</label>
+                <select id="f_vehiculo">
+                    <option value="Ninguno">Buenas condiciones</option>
+                    <option value="Neumáticos en mal estado">Neumáticos</option>
+                    <option value="Fallas mecánicas">Fallas mecánicas</option>
+                    <option value="Exceso de dimensiones">Exceso dimensiones</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="sub-seccion">
+        <h4>Estimación de Daños y Firma</h4>
+        <div class="grid-3">
+            <div><label>Daños Vehículo ($)</label><input type="number" id="danos_v"></div>
+            <div><label>Daños Camino ($)</label><input type="number" id="danos_c"></div>
+            <div><label>Daños Carga ($)</label><input type="number" id="danos_carga_val"></div>
+        </div>
+        <div class="grid-2" style="margin-top:10px;">
+            <div><label>Grado del Oficial</label><input type="text" id="grado"></div>
+            <div><label>Nombre Completo</label><input type="text" id="nombre_gn"></div>
+        </div>
+        <div class="grid-2">
+            <div><label>Art. 30 Fracción</label><input type="text" id="art_fraccion" placeholder="Fracción"></div>
+            <div><label>Apartado</label><input type="text" id="art_apartado" placeholder="Apartado"></div>
+        </div>
+    </div>
+</div>
+
+    <div class="file-input-container">
+        <label style="color:#333">1. SELECCIONAR PLANTILLA PDF:</label>
+        <input type="file" id="archivoPdf" accept="application/pdf">
+    </div>
+
+    <button type="submit" id="btnPrincipal" class="btn-submit">GENERAR DOCUMENTO</button>
+  </form>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<!-- SUPABASE -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+
+    const SUPABASE_URL = "https://jjuqauxmkwqggvkayzxr.supabase.co";
+const SUPABASE_KEY = "sb_publishable_4EZ3TWp81gUYerPR9aNgJg_we2oIqAc";
+
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+// --- LÓGICA DE INTERFAZ DINÁMICA ---
+function actualizarHechos() {
+    const t = document.getElementById('tipohecho').value;
+    document.getElementById('contenedor-filtros').classList.toggle('hidden', !t);
+    document.getElementById('f-atrop').classList.toggle('hidden', t !== 'atropellamiento');
+    document.getElementById('f-choque').classList.toggle('hidden', t !== 'choque');
+    if(['volcadura','derrape','caidaPasajero'].includes(t)) checkPersona('persona');
+}
+
+function checkPersona(v) {
+    document.getElementById('seccion-heridos').classList.toggle('hidden', v !== 'persona');
+}
+
+function dibujarHeridos() {
+    const n = document.getElementById('num_heridos').value;
+    const cont = document.getElementById('lista-heridos');
+    cont.innerHTML = '';
+    for(let i=1; i<=n; i++) {
+        cont.innerHTML += `<div class="sub-seccion"><label>Herido ${i}: Tipo de lesión</label>
+            <select name="lesion_${i}"><option value="leve">Leve</option><option value="grave">Grave</option><option value="fallecido">Fallecido</option></select></div>`;
+    }
+}
+
+function toggleCausaOtro(sel) { document.getElementById('otro-causa').classList.toggle('hidden', sel.value !== 'otros'); }
+function toggleCircOtro(sel) { document.getElementById('otro-circ').classList.toggle('hidden', sel.value !== 'Otra'); }
+
+function renderVehiculos() {
+    const n = document.getElementById('num_veh').value;
+    const cont = document.getElementById('cont-vehiculos');
+    cont.innerHTML = '';
+    for(let i=1; i<=n; i++) {
+        cont.innerHTML += `
+            <div class="sub-seccion">
+                <h4>UNIDAD ${i}</h4>
+                <div class="grid-3">
+                    <input placeholder="Marca / Modelo"><input placeholder="Placas"><input placeholder="Procedencia">
+                </div>
+                <div class="grid-2">
+                    <div>
+                        <label>Categoría Licencia</label>
+                        <select id="cat_${i}" onchange="updateLic(${i})">
+                            <option value="">Seleccione...</option>
+                            <option value="p">Particular</option><option value="f">Federal</option>
+                        </select>
+                    </div>
+                    <div id="div_sel_${i}" class="hidden">
+                        <label>Tipo Licencia</label><select id="sel_${i}"></select>
+                    </div>
+                </div>
+            </div>`;
+    }
+}
+
+function updateLic(idx) {
+    const cat = document.getElementById(`cat_${idx}`).value;
+    const div = document.getElementById(`div_sel_${idx}`);
+    const sel = document.getElementById(`sel_${idx}`);
+    sel.innerHTML = '';
+    if(!cat) { div.classList.add('hidden'); return; }
+    div.classList.remove('hidden');
+    const opts = {'p':['Tipo A','Tipo B'],'f':['Federal A','Federal B','Federal C']};
+    opts[cat].forEach(o => { const el=document.createElement('option'); el.text=o; sel.add(el); });
+}
+
+// --- KM FORMAT (000+000) ---
+document.getElementById('km').addEventListener('input', function (e) {
+    let v = e.target.value.replace(/\D/g, '');
+    if (v.length > 3) v = v.slice(0, 3) + "+" + v.slice(3, 6);
+    e.target.value = v;
+});
+
+// --- GPS Y MAPA ---
+const map = L.map('map').setView([23.6, -102.5], 5);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+let marker;
+
+async function updateLocation(lat, lng) {
+    if (marker) marker.setLatLng([lat, lng]); else marker = L.marker([lat, lng]).addTo(map);
+    document.getElementById('lat').value = lat.toFixed(6);
+    document.getElementById('lng').value = lng.toFixed(6);
+    try {
+        const resp = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+        const data = await resp.json();
+        document.getElementById('estado').value = data.address.state || "";
+        document.getElementById('municipio').value = data.address.city || data.address.town || "";
+    } catch(e){}
+}
+map.on('click', e => updateLocation(e.latlng.lat, e.latlng.lng));
+
+function getGPS() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(p => {
+            updateLocation(p.coords.latitude, p.coords.longitude);
+            map.setView([p.coords.latitude, p.coords.longitude], 15);
+        });
+    }
+}
+
+// --- PDF PROCESSING ---
+async function procesarPDF(){
+    // Guardar datos del oficial en localstorage
+    localStorage.setItem('oficial_grado', document.getElementById('grado').value);
+    localStorage.setItem('oficial_nombre', document.getElementById('nombre_gn').value);
+
+    try {
+        const { PDFDocument } = PDFLib;
+        const fileInput = document.getElementById("archivoPdf");
+        if(!fileInput.files.length) return alert("Carga la plantilla PDF.");
+
+        const pdfBytes = await fileInput.files[0].arrayBuffer();
+        const pdfDoc = await PDFDocument.load(pdfBytes);
+        const form = pdfDoc.getForm();
+
+        const setField = (n, v) => { try { form.getTextField(n).setText(v || ""); } catch(e){} };
+    
+
+        const fecha = document.getElementById("fecha").value;
+       const dataMap = {
+        
+    // Hoja 1
+    'DICTAMEN TÉCNICO DE HECHO DE TRANSITO No.': document.getElementById('dictamen_no').value,
+    'COORDINACIÓN': document.getElementById('coordinacion').value,
+    'ESTACION': document.getElementById('estacion').value,
+    'IPH': document.getElementById('folio_iph').value,
+    'CARRETERA (NUM. Y NOMBRE)': document.getElementById('carretera').value,
+    'TRAMO Y RUTA': document.getElementById('tramo').value,
+    'KILÓMETRO': document.getElementById('km').value,
+
+    // Hoja 2: Daños Materiales
+    'VEH.': document.getElementById('danos_v').value,
+    'CAMINO': document.getElementById('danos_c').value,
+    'CARGA O SUSTANCIA': document.getElementById('danos_carga_val').value,
+
+    // Hoja 2: Firmas y Ley
+    'GRADO': document.getElementById('grado').value,
+    'NOMBRE': document.getElementById('nombre_gn').value,
+    'EXPEDIENTE': document.getElementById('expediente_gn').value,
+    'articulo 30, fracción': document.getElementById('art_fraccion').value,
+    'apartado': document.getElementById('art_apartado').value,
+
+    // Georreferenciación
+    'GEORREFERENCIACIÓN LATITUD:': document.getElementById('lat').value,
+    'LONGITUD:': document.getElementById('lng').value
+            };
+
+            // Lógica de fecha con nombres exactos del PDF
+            if(fecha){
+                const p = fecha.split("-");
+                dataMap['AÑO'] = p[0]; 
+                dataMap['MES'] = p[1]; 
+                dataMap['DIA'] = p[2];
+                const dias = ["DOMINGO","LUNES","MARTES","MIÉRCOLES","JUEVES","VIERNES","SÁBADO"];
+                dataMap['DIA DE LA SEMANA'] = dias[new Date(p[0], p[1]-1, p[2]).getDay()];
+            }
+
+        Object.keys(dataMap).forEach(k => setField(k, dataMap[k]));
+
+        const finalBytes = await pdfDoc.save();
+        const blob = new Blob([finalBytes], {type:"application/pdf"});
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = `DICTAMEN_${document.getElementById('dictamen_no').value}.pdf`;
+        link.click();
+    } catch(err) { alert("Error al generar PDF."); }
+}
+
+async function guardarReporte(){
+
+const { data, error } = await supabaseClient
+.from("reportes_accidentes")
+.insert([{
+
+instancia: document.getElementById("supervisa_select").value,
+dictamen_no: document.getElementById("dictamen_no").value,
+
+fecha: document.getElementById("fecha").value,
+hora: document.getElementById("hora").value,
+
+carretera: document.getElementById("carretera").value,
+tramo: document.getElementById("tramo").value,
+ruta: document.getElementById("ruta").value,
+kilometro: document.getElementById("km").value,
+
+tipo_hecho: document.getElementById("tipohecho").value,
+
+heridos: parseInt(document.getElementById("num_heridos").value) || 0,
+fallecidos: parseInt(document.getElementById("fallecidos").value) || 0,
+num_vehiculos: parseInt(document.getElementById("num_veh").value) || 0,
+total_participantes: parseInt(document.getElementById("total_participantes").value) || 0,
+
+causa: document.getElementById("causa_select").value,
+circunstancia: document.getElementById("circ_select").value,
+
+latitud: parseFloat(document.getElementById("lat").value) || null,
+lng: parseFloat(document.getElementById("lng").value) || null,
+
+estado: document.getElementById("estado").value,
+municipio: document.getElementById("municipio").value
+
+}]);
+
+if(error){
+console.log("ERROR SUPABASE:", error);
+alert("Error guardando: " + error.message);
+}else{
+console.log("Reporte guardado correctamente");
+}
+
+}
+
+function setNow() {
+    const d = new Date();
+    document.getElementById('fecha').value = d.toISOString().split('T')[0];
+    document.getElementById('hora').value = d.toTimeString().split(' ')[0].substring(0,5);
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+
+document.getElementById("supervisa_select").addEventListener("change", function(){
+
+const year = new Date().getFullYear();
+const campo = document.getElementById("dictamen_no");
+
+const ejemplos = {
+GN: `GN-${year}-001`,
+CAPUFE: `CAPUFE-${year}-001`,
+DGST: `DGST-${year}-001`,
+AMIS: `AMIS-${year}-001`,
+ESTATAL: `ESTATAL-${year}-001`,
+CIPAL: `MUNICIPAL-${year}-001`
+};
+
+campo.placeholder = ejemplos[this.value] || "INST-2026-001";
+
+});
+    // Cargar datos guardados
+    document.getElementById('grado').value = localStorage.getItem('oficial_grado') || "";
+    document.getElementById('nombre_gn').value = localStorage.getItem('oficial_nombre') || "";
+    
+    setNow();
+
+    const selInstancia = document.getElementById("supervisa_select");
+    const secGN = document.getElementById("seccion_gn");
+    const btn = document.getElementById("btnPrincipal");
+
+    selInstancia.addEventListener("change", () => {
+        const isGN = selInstancia.value === "GN";
+        secGN.classList.toggle("hidden", !isGN);
+        btn.textContent = isGN ? "GENERAR DICTAMEN GN" : "GUARDAR REPORTE";
+    });
+
+   document.getElementById("AccidentForm").addEventListener("submit", async e => {
+
+e.preventDefault();
+
+await guardarReporte();
+
+const instancia = document.getElementById("supervisa_select").value;
+
+if(instancia === "GN"){
+    procesarPDF();
+}else{
+    alert("Reporte guardado correctamente");
+}
+
+});
+});
+</script>
+</body>
+</html>
