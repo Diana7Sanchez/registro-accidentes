@@ -1040,14 +1040,11 @@ document.getElementById("foto_hecho").addEventListener("change", function(e) {
     const preview = document.getElementById("preview_foto");
 
     if (file) {
-        const reader = new FileReader();
-
-        reader.onload = function(event) {
-            preview.src = event.target.result;
-            preview.classList.remove("hidden");
-        };
-
-        reader.readAsDataURL(file);
+     if (file) {
+    const url = URL.createObjectURL(file);
+    preview.src = url;
+    preview.classList.remove("hidden");
+}
     } else {
         preview.classList.add("hidden");
         preview.src = "";
