@@ -376,10 +376,10 @@ details[open] {
 
     <label for="tipohecho">
         Tipo Hecho de Tránsito
-        <span id="iconoFoto" style="cursor:pointer; margin-left:10px;">📷</span>
+       <label for="foto_hecho" style="cursor:pointer; margin-left:10px;">📷</label>
     </label>
 
-    <input type="file" id="foto_hecho" accept="image/*" hidden>
+    <input type="file" id="foto_hecho" accept="image/*" capture="environment" hidden>
 <img id="preview_foto" class="hidden" 
      style="margin-top:10px; max-width:100%; border-radius:8px; border:2px solid var(--color-secundario);" />
     <select id="tipohecho" onchange="actualizarHechos()" required>
@@ -1032,23 +1032,28 @@ details[open] {
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
-document.getElementById("iconoFoto").addEventListener("click", () => {
-    document.getElementById("foto_hecho").click();
-});
+
 document.getElementById("foto_hecho").addEventListener("change", function(e) {
     const file = e.target.files[0];
     const preview = document.getElementById("preview_foto");
 
     if (file) {
-     if (file) {
-    const url = URL.createObjectURL(file);
-    preview.src = url;
-    preview.classList.remove("hidden");
-}
+      const url = URL.createObjectURL(file);
+preview.src = url;
+
+preview.onload = () => {
+    URL.revokeObjectURL(url);
+};
+        preview.classList.remove("hidden");
     } else {
         preview.classList.add("hidden");
         preview.src = "";
     }
+
+    // 🔥 SOLUCIÓN AL DOBLE CLICK
+    setTimeout(() => {
+    e.target.value = "";
+}, 100);
 });
     const SUPABASE_URL = "https://jjuqauxmkwqggvkayzxr.supabase.co";
 const SUPABASE_KEY = "sb_publishable_4EZ3TWp81gUYerPR9aNgJg_we2oIqAc";
