@@ -175,10 +175,8 @@ select {
     grid-template-columns: 18px 1fr; /* columna fija para checkbox */
     align-items: center;
     gap: 8px;
-
     font-size: 0.85em;
     line-height: 1.2;
-
     padding: 4px 6px;
     border-radius: 4px;
 }
@@ -387,28 +385,23 @@ details[open] {
 
     <option value="salidaCamino">Salida del camino</option>
     <option value="volcadura">Volcadura</option>
-
+    <option value="derrape">Derrape</option>
     <option value="choque_frente">Choque de frente</option>
     <option value="choque_lateral">Choque lateral</option>
     <option value="choque_alcance">Choque por alcance</option>
     <option value="choque_estacionado">Choque vehículo estacionado</option>
 
     <option value="choque_objeto">Choque contra objeto fijo</option>
-
     <option value="choque_tren">Choque vs tren</option>
     <option value="choque_bici">Choque vs bicicleta / motocicleta</option>
     <option value="choque_semoviente">Choque semoviente</option>
-
     <option value="atropellamiento">Atropellamiento</option>
-
     <option value="incendio">Incendio</option>
     <option value="derrape_carga">Caída o derrape de carga</option>
     <option value="caidaPasajero">Caída de pasajero</option>
-
     <option value="desprendimiento_remolque">Desprendimiento remolque</option>
     <option value="desprendimiento_neumatico">Desprendimiento de neumático</option>
     <option value="estallamiento_neumatico">Estallamiento de neumático</option>
-
     <option value="desprendimiento_eje">Desprendimiento de eje</option>
     <option value="desprendimiento_flecha">Desprendimiento de flecha</option>
 
@@ -495,7 +488,7 @@ details[open] {
            <select id="causa_select" onchange="toggleCausaOtro(this)">
 <option value="">Seleccione...</option>
 
-<!-- 🔵 CAMINO -->
+<!--  CAMINO -->
 <optgroup label="Camino">
 <option value="ganado">Irrupción de ganado</option>
 <option value="imperfecciones">Desperfectos</option>
@@ -506,7 +499,7 @@ details[open] {
 <option value="otros_camino">Otros (camino)</option>
 </optgroup>
 
-<!-- 🟡 VEHÍCULO -->
+<!--  VEHÍCULO -->
 <optgroup label="Vehículo">
 <option value="carga">Carga mal sujeta</option>
 <option value="motor">Motor</option>
@@ -518,7 +511,7 @@ details[open] {
 <option value="visibilidad">Mala visibilidad</option>
 </optgroup>
 
-<!-- 🟣 CLIMA -->
+<!--  CLIMA -->
 <optgroup label="Climatológico">
 <option value="lluvia">Lluvia</option>
 <option value="nieve">Nieve</option>
@@ -673,7 +666,7 @@ details[open] {
 </div>
 
 </details>
-<!-- 🔽 CONDICIONES DE LUZ -->
+<!--  CONDICIONES DE LUZ -->
 <details>
 <summary>Condiciones de Luz</summary>
 
@@ -686,7 +679,7 @@ details[open] {
 
 </details>
 
-<!-- 🔽 SEGURIDAD CONDUCTOR -->
+<!--  SEGURIDAD CONDUCTOR -->
 <details>
 <summary>Seguridad Vial Activa del Conductor</summary>
 
@@ -702,7 +695,7 @@ details[open] {
 
 </details>
 
-<!-- 🔽 SEGURIDAD VEHÍCULO -->
+<!-- SEGURIDAD VEHÍCULO -->
 <details>
 <summary>Seguridad Activa y Pasiva del Vehículo</summary>
 
@@ -729,7 +722,7 @@ details[open] {
 
 </details>
 
-<!-- 🔽 CONTROL DE TRÁNSITO -->
+<!--  CONTROL DE TRÁNSITO -->
 <details>
 <summary>Control de Tránsito</summary>
 
@@ -919,8 +912,7 @@ details[open] {
 
 </div> 
 
-
-<!-- 🔹 GRÚA -->
+<!--  GRÚA -->
 <div class="sub-seccion">
 <h3>Tipo de Grúa Utilizada</h3>
 
@@ -936,15 +928,13 @@ details[open] {
 </div>
 </div>
 
-
-<!-- 🔹 BOLETAS -->
+<!--  BOLETAS -->
 <div class="sub-seccion">
 <h3>Boleta de Infracción</h3>
 <div id="boletas_container"></div>
 </div>
 
-
-<!-- 🔹 COMPLEMENTARIAS -->
+<!-- COMPLEMENTARIAS -->
 <div class="sub-seccion">
 <h3>Complementarias</h3>
 
@@ -965,7 +955,6 @@ details[open] {
     </div>
 </div>
 </div>
-
 
 <div class="grid-2" style="margin-top:20px; align-items: stretch;">
     
@@ -1017,7 +1006,6 @@ details[open] {
 </div> 
 </div> <!-- TERMINA ANEXO GN -->
 
-<!-- FUERA DE GN -->
 <div class="sub-seccion">
     <button type="button" id="btnPrincipal" class="btn-submit" onclick="guardarReporte()">
         GENERAR DOCUMENTO
@@ -1033,33 +1021,57 @@ details[open] {
 
 <script>
 
-document.getElementById("foto_hecho").addEventListener("change", function(e) {
+document.getElementById("foto_hecho").addEventListener("change", async function(e) {
     const file = e.target.files[0];
     const preview = document.getElementById("preview_foto");
 
     if (file) {
-      const url = URL.createObjectURL(file);
-preview.src = url;
+        // 👁️ PREVIEW
+        const url = URL.createObjectURL(file);
+        preview.src = url;
 
-preview.onload = () => {
-    URL.revokeObjectURL(url);
-};
+        preview.onload = () => {
+            URL.revokeObjectURL(url);
+        };
+
         preview.classList.remove("hidden");
+
+        const urlPublica = await subirImagen(file);
+
+        console.log("Imagen guardada:", urlPublica);
+
+       
+        window.fotoURL = urlPublica;
+
     } else {
         preview.classList.add("hidden");
         preview.src = "";
     }
-
-    // 🔥 SOLUCIÓN AL DOBLE CLICK
-    setTimeout(() => {
-    e.target.value = "";
-}, 100);
 });
     const SUPABASE_URL = "https://jjuqauxmkwqggvkayzxr.supabase.co";
 const SUPABASE_KEY = "sb_publishable_4EZ3TWp81gUYerPR9aNgJg_we2oIqAc";
 
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+async function subirImagen(file) {
+    const nombre = `foto_${Date.now()}.jpg`;
 
+    const { data, error } = await supabaseClient
+        .storage
+        .from('imagenes')
+        .upload(nombre, file);
+
+    if (error) {
+        console.error("Error al subir:", error);
+        return null;
+    }
+
+    const { data: urlData } = supabaseClient
+        .storage
+        .from('imagenes')
+        .getPublicUrl(nombre);
+
+    return urlData.publicUrl;
+}
 function actualizarHechos() {
     const t = document.getElementById('tipohecho').value;
     
@@ -1433,8 +1445,6 @@ async function procesarPDF(){
                 console.warn("Checkbox no encontrado:", name);
             }
         }
-
-        //  INSERTAR MAPA EN HOJA 3
   
         const mapaBytes = await capturarMapa();
 
@@ -1500,7 +1510,7 @@ const tipo = document.getElementById("tipohecho").value;
 "Despreneumatico","Estallaneumatico","Atropellemiento","Despreneje","Desprenfle"
 ].forEach(c => setCheck(c, false));
 
-//  MAPEO EXACTO
+
 const mapa = {
 
     salidaCamino: "Salida del camino",
@@ -1644,7 +1654,6 @@ setField("croquititexpdt", document.getElementById("titulaestexpediente")?.value
 
 //  DETALLE DE CHOQUE (filtro adicional)
 const detalle = document.querySelector('#f-choque select')?.value;
-
 
 // =CHECKBOX GN =
 const mapChecks = [
@@ -1852,7 +1861,6 @@ const fecha = fechaInput ? new Date(fechaInput) : new Date();
     'Procedencia antes': document.querySelector('#cont-vehiculos input[placeholder="Procedencia"]')?.value || ""
 };
 
-
 // PEATÓN 
 setCheck("PeatonM", false);
 setCheck("PeatonL", false);
@@ -1874,7 +1882,7 @@ setField("primeraux3", document.getElementById("traslado3")?.value);
 setField("llevadau", document.getElementById("traslado1")?.value);
 setField("llevadav", document.getElementById("traslado2")?.value);
 setField("llevadaw", document.getElementById("traslado3")?.value);
-// ===== FUENTE DE INFORMACIÓN (CHECKBOXES) =====
+// ===== FUENTE DE INFORMACION (CHECKBOXES) =====
 setCheck("fuentedirecta", document.getElementById("fuente_directa")?.checked);
 setCheck("fuenteorden", document.getElementById("fuente_orden")?.checked);
 setCheck("fuenteaviso", document.getElementById("fuente_aviso")?.checked);
@@ -1893,7 +1901,7 @@ setField("fuentedictamen", document.getElementById("fuente_dictamen")?.value);
     setField(`Clasificacion${i}`, document.getElementById(`clasificacion_${i}`)?.value);
     setField(`Entidad-vigencia${i}`, document.getElementById(`procedencia_${i}`)?.value);
 
-    // ===== UBICACIÓN =====
+    // ===== UBICACION =====
     setField(`Con direccion a${i}`, document.getElementById(`direccion_${i}`)?.value);
     setField(`Camino o calle${i}`, document.getElementById(`camino_${i}`)?.value);
 
@@ -2190,8 +2198,7 @@ if (error) {
 
     document.addEventListener("DOMContentLoaded", () => {
 
-    
-        // 1. Inicialización de componentes dinámicos
+        // 1. InicializaciOn de componentes dinámicos
         generarBoletas();
 
         // 2. Referencias a elementos
