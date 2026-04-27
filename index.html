@@ -1036,7 +1036,11 @@ document.getElementById("foto_hecho").addEventListener("change", async function(
 
         preview.classList.remove("hidden");
 
-        const urlPublica = await subirImagen(file);
+        // COMPRIMIR PRIMERO
+const fileComprimido = await comprimirImagen(file);
+
+// LUEGO SUBIR
+const urlPublica = await subirImagen(fileComprimido);
 
         console.log("Imagen guardada:", urlPublica);
 
@@ -1057,21 +1061,54 @@ async function subirImagen(file) {
 
     const { data, error } = await supabaseClient
         .storage
-        .from('imagenes')
+       from('fotos-accidentes')
         .upload(nombre, file);
 
     if (error) {
-        console.error("Error al subir:", error);
-        return null;
-    }
+    console.error("Error al subir:", error);
+    alert("Error al subir imagen: " + error.message);
+    return null;
+}
 
     const { data: urlData } = supabaseClient
         .storage
-        .from('imagenes')
+        from('fotos-accidentes')
         .getPublicUrl(nombre);
 
     return urlData.publicUrl;
 }
+
+async function comprimirImagen(file) {
+    const img = document.createElement("img");
+    img.src = URL.createObjectURL(file);
+
+    await new Promise(resolve => img.onload = resolve);
+
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+
+    const MAX = 800;
+    let width = img.width;
+    let height = img.height;
+
+    if (width > height && width > MAX) {
+        height *= MAX / width;
+        width = MAX;
+    } else if (height > MAX) {
+        width *= MAX / height;
+        height = MAX;
+    }
+
+    canvas.width = width;
+    canvas.height = height;
+
+    ctx.drawImage(img, 0, 0, width, height);
+
+    return new Promise(resolve => {
+        canvas.toBlob(resolve, "image/jpeg", 0.7);
+    });
+}
+
 function actualizarHechos() {
     const t = document.getElementById('tipohecho').value;
     
