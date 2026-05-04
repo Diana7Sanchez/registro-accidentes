@@ -1078,10 +1078,10 @@ const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 async function subirImagen(file) {
     const nombre = `foto_${Date.now()}.jpg`;
 
-    const { data, error } = await supabaseClient
-        .storage
-       from('fotos-accidentes')
-        .upload(nombre, file);
+   const { data, error } = await supabaseClient
+    .storage
+    .from('fotos-accidentes')
+    .upload(nombre, file);
 
     if (error) {
     console.error("Error al subir:", error);
@@ -1091,7 +1091,7 @@ async function subirImagen(file) {
 
     const { data: urlData } = supabaseClient
         .storage
-        from('fotos-accidentes')
+        .from('fotos-accidentes')
         .getPublicUrl(nombre);
 
     return urlData.publicUrl;
@@ -2250,22 +2250,23 @@ let fotoUrl = "";
             heridos: heridos,
             fallecidos: fallecidos,
             num_vehiculos: parseInt(document.getElementById("num_veh").value) || 0,
-            total_participantes: parseInt(document.getElementById("total_participantes").value) || 0,
+            total_participantes: parseInt(document.getElementById("total_participantes")?.value) || 0,
             causa: document.getElementById("causa_select").value,
             circunstancia: document.getElementById("circ_select").value,
             latitud: parseFloat(document.getElementById("lat").value) || null,
             lng: parseFloat(document.getElementById("lng").value) || null,
             estado: document.getElementById("estado").value,
             municipio: document.getElementById("municipio").value
-        }]);
-
+            
+   }])
+.select()
 if (error) {
     console.log("ERROR SUPABASE:", error);
     alert("❌ Error guardando: " + error.message);
 } else {
     console.log("Reporte guardado con éxito.");
 
-    const reporteId = data[0].id; // 🔥 ID DEL REPORTE
+    const reporteId = data.id;
 
     // =========================
     // 🚗 GUARDAR VEHÍCULOS
