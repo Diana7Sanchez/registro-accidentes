@@ -483,69 +483,55 @@ details[open] {
         <div>
             <label>Cantidad de Vehículos</label>
             <input type="number" id="num_veh" min="0" onchange="renderVehiculos()">
-    
-    <!-- 🔹 TIPO DE CAUSA (CONTROL PRINCIPAL) -->
-<label>Tipo de causa</label>
-<select id="tipo_causa" onchange="toggleTipoCausa(this)">
-    <option value="">Seleccione...</option>
-    <option value="factores">Camino / Vehículo / Climatológico</option>
-    <option value="conductor">Circunstancias del conductor</option>
-    <option value="ambas">Ambas</option>
+            
+            <label>Probables Causas</label>
+           <select id="causa_select" onchange="toggleCausaOtro(this)">
+<option value="">Seleccione...</option>
+
+<!--  CAMINO -->
+<optgroup label="Camino">
+<option value="ganado">Irrupción de ganado</option>
+<option value="imperfecciones">Desperfectos</option>
+<option value="senales">Falta de señales</option>
+<option value="objetos">Objetos en el camino</option>
+<option value="mojado">Mojado</option>
+<option value="resbaloso">Resbaloso</option>
+<option value="otros_camino">Otros (camino)</option>
+</optgroup>
+
+<!--  VEHÍCULO -->
+<optgroup label="Vehículo">
+<option value="carga">Carga mal sujeta</option>
+<option value="motor">Motor</option>
+<option value="neumaticos">Neumáticos en mal estado</option>
+<option value="mecanica">Malas condiciones mecánicas</option>
+<option value="electromecanica">Malas condiciones electromecánicas</option>
+<option value="sobrepeso">Vehículo con sobrepeso</option>
+<option value="dimensiones">Exceso de dimensiones</option>
+<option value="visibilidad">Mala visibilidad</option>
+</optgroup>
+
+<!--  CLIMA -->
+<optgroup label="Climatológico">
+<option value="lluvia">Lluvia</option>
+<option value="nieve">Nieve</option>
+<option value="granizo">Granizo</option>
+<option value="niebla">Niebla</option>
+<option value="inundacion">Inundación</option>
+<option value="humo">Humo</option>
+<option value="tolvanera">Tolvanera</option>
+<option value="viento">Vientos fuertes</option>
+<option value="otro_clima">Otros (clima)</option>
+</optgroup>
 </select>
-
-<!-- 🔹 BLOQUE: PROBABLES CAUSAS -->
-<div id="bloque_causas" class="hidden">
-
-    <label>Probables causas</label>
-
-    <select id="causa_select" onchange="toggleCausaOtro(this)">
-        <option value="">Seleccione...</option>
-
-        <!-- CAMINO -->
-        <optgroup label="Camino">
-            <option value="ganado">Irrupción de ganado</option>
-            <option value="imperfecciones">Desperfectos</option>
-            <option value="senales">Falta de señales</option>
-            <option value="objetos">Objetos en el camino</option>
-            <option value="mojado">Mojado</option>
-            <option value="resbaloso">Resbaloso</option>
-            <option value="otros_camino">Otros (camino)</option>
-        </optgroup>
-
-        <!-- VEHÍCULO -->
-        <optgroup label="Vehículo">
-            <option value="carga">Carga mal sujeta</option>
-            <option value="motor">Motor</option>
-            <option value="neumaticos">Neumáticos en mal estado</option>
-            <option value="mecanica">Malas condiciones mecánicas</option>
-            <option value="electromecanica">Malas condiciones electromecánicas</option>
-            <option value="sobrepeso">Vehículo con sobrepeso</option>
-            <option value="dimensiones">Exceso de dimensiones</option>
-            <option value="visibilidad">Mala visibilidad</option>
-        </optgroup>
-
-        <!-- CLIMA -->
-        <optgroup label="Climatológico">
-            <option value="lluvia">Lluvia</option>
-            <option value="nieve">Nieve</option>
-            <option value="granizo">Granizo</option>
-            <option value="niebla">Niebla</option>
-            <option value="inundacion">Inundación</option>
-            <option value="humo">Humo</option>
-            <option value="tolvanera">Tolvanera</option>
-            <option value="viento">Vientos fuertes</option>
-            <option value="otro_clima">Otros (clima)</option>
-        </optgroup>
-    </select>
-
-    <div id="otro-causa" class="hidden">
-        <input type="text" id="otra_causa_input" placeholder="Especifique causa">
-    </div>
-
-</div>
-
-<!-- 🔹 BLOQUE: CONDUCTOR -->
-<div id="bloque_conductor" class="hidden">
+            <div id="otro-causa" class="hidden">
+                <input type="text" id="otra_causa_input" placeholder="Especifique causa">
+            </div>
+        </div>
+        
+       <div>
+    <label>Total Participantes</label>
+    <input type="number" id="total_participantes">
 
     <label>Circunstancias del conductor</label>
 
@@ -568,14 +554,9 @@ details[open] {
         <option value="deslumbramiento">Deslumbramiento</option>
         <option value="distraccion">Uso de celular</option>
         <option value="discapacidad">Discapacidad</option>
-        <option value="otra">Otra</option>
+        <option value="otra">Otra</option> 
     </select>
 
-    <div id="otro-circ" class="hidden">
-        <input type="text" id="otra_circ_input" placeholder="Especifique circunstancia">
-    </div>
-
-</div>
     <div id="otro-circ" class="hidden">
         <input type="text" id="otra_circ_input" placeholder="Especifique circunstancia">
     </div>
@@ -1078,10 +1059,10 @@ const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 async function subirImagen(file) {
     const nombre = `foto_${Date.now()}.jpg`;
 
-   const { data, error } = await supabaseClient
-    .storage
-    .from('fotos-accidentes')
-    .upload(nombre, file);
+    const { data, error } = await supabaseClient
+        .storage
+       from('fotos-accidentes')
+        .upload(nombre, file);
 
     if (error) {
     console.error("Error al subir:", error);
@@ -1091,7 +1072,7 @@ async function subirImagen(file) {
 
     const { data: urlData } = supabaseClient
         .storage
-        .from('fotos-accidentes')
+        from('fotos-accidentes')
         .getPublicUrl(nombre);
 
     return urlData.publicUrl;
@@ -1194,26 +1175,6 @@ function toggleCausaOtro(sel) { document.getElementById('otro-causa').classList.
 function toggleCircOtro(sel) { 
     document.getElementById('otro-circ').classList.toggle('hidden', sel.value !== 'otra'); 
 }
-function toggleTipoCausa(sel) {
-    const tipo = sel.value;
-
-    const bloqueCausas = document.getElementById('bloque_causas');
-    const bloqueConductor = document.getElementById('bloque_conductor');
-
-    bloqueCausas.classList.add('hidden');
-    bloqueConductor.classList.add('hidden');
-
-    if (tipo === "factores") {
-        bloqueCausas.classList.remove('hidden');
-    } 
-    else if (tipo === "conductor") {
-        bloqueConductor.classList.remove('hidden');
-    } 
-    else if (tipo === "ambas") {
-        bloqueCausas.classList.remove('hidden');
-        bloqueConductor.classList.remove('hidden');
-    }
-}
 
 function renderVehiculos() {
     const n = document.getElementById('num_veh').value;
@@ -1225,22 +1186,12 @@ function renderVehiculos() {
         <div class="sub-seccion">
             <h4>UNIDAD ${i}</h4>
 
-           <div class="grid-3">
-
-    <select id="config_${i}">
-        <option value="">Configuración vehicular</option>
-        <option value="ligero">Vehículo ligero particular</option>
-        <option value="midibus">Midibús / ligero</option>
-        <option value="autobus">Autobús</option>
-        <option value="camion_unitario">Camión unitario</option>
-        <option value="articulado">Articulado</option>
-        <option value="doble_articulado">Doble articulado</option>
-    </select>
-
-    <input id="marca_${i}" placeholder="Marca">
-    <input id="modelo_${i}" placeholder="Modelo">
-    <input id="color_${i}" placeholder="Color">
-</div>
+            <div class="grid-3">
+                <input id="clasificacion_${i}" placeholder="Clasificación">
+                <input id="marca_${i}" placeholder="Marca">
+                <input id="modelo_${i}" placeholder="Modelo">
+                <input id="color_${i}" placeholder="Color">
+            </div>
 
             <div class="grid-3">
                 <input id="numid_${i}" placeholder="Número de identificación">
@@ -2250,101 +2201,25 @@ let fotoUrl = "";
             heridos: heridos,
             fallecidos: fallecidos,
             num_vehiculos: parseInt(document.getElementById("num_veh").value) || 0,
-            total_participantes: parseInt(document.getElementById("total_participantes")?.value) || 0,
+            total_participantes: parseInt(document.getElementById("total_participantes").value) || 0,
             causa: document.getElementById("causa_select").value,
             circunstancia: document.getElementById("circ_select").value,
             latitud: parseFloat(document.getElementById("lat").value) || null,
             lng: parseFloat(document.getElementById("lng").value) || null,
             estado: document.getElementById("estado").value,
             municipio: document.getElementById("municipio").value
-            
-   }])
-.select()
+        }]);
+
 if (error) {
     console.log("ERROR SUPABASE:", error);
     alert("❌ Error guardando: " + error.message);
 } else {
     console.log("Reporte guardado con éxito.");
-
-    const reporteId = data.id;
-
-    // =========================
-    // 🚗 GUARDAR VEHÍCULOS
-    // =========================
-    const numVeh = parseInt(document.getElementById("num_veh").value) || 0;
-
-    for (let i = 1; i <= numVeh; i++) {
-
-        const { data: vehiculo, error: vehError } = await supabaseClient
-            .from('vehiculos')
-            .insert([{
-                reporte_id: reporteId,
-
-                configuracion_vehicular: document.getElementById(`config_${i}`)?.value,
-                marca: document.getElementById(`marca_${i}`)?.value,
-                modelo: document.getElementById(`modelo_${i}`)?.value,
-                color: document.getElementById(`color_${i}`)?.value,
-                placas: document.getElementById(`placas_${i}`)?.value,
-                procedencia: document.getElementById(`procedencia_${i}`)?.value,
-                direccion: document.getElementById(`direccion_${i}`)?.value
-            }])
-            .select()
-            .single();
-
-        if (vehError) {
-            console.error("Error vehículo:", vehError);
-            continue;
-        }
-
-        const vehiculoId = vehiculo.id;
-
-        // =========================
-        // 👤 GUARDAR CONDUCTOR
-        // =========================
-        await supabaseClient
-            .from('conductores')
-            .insert([{
-                vehiculo_id: vehiculoId,
-
-                sexo: document.getElementById(`sexo_${i}`)?.value,
-                edad: document.getElementById(`edad_${i}`)?.value,
-                nacionalidad: document.getElementById(`nacionalidad_${i}`)?.value,
-                entidad_licencia: document.getElementById(`entidad_lic_${i}`)?.value,
-                vigencia: document.getElementById(`vigencia_${i}`)?.value,
-                categoria_licencia: document.getElementById(`cat_${i}`)?.value,
-
-                capacidad: document.getElementById(`capacidad_${i}`)?.value,
-                tipo_carga: document.getElementById(`tipo_carga_${i}`)?.value,
-                valor_carga: document.getElementById(`valor_carga_${i}`)?.value,
-                empresa: document.getElementById(`empresa_${i}`)?.value,
-                tipo_servicio: document.getElementById(`tipo_servicio_${i}`)?.value,
-                expedida_sct: document.getElementById(`expedida_${i}`)?.value
-            }]);
-
-        // =========================
-        // 🚛 GUARDAR REMOLQUES
-        // =========================
-        const numRem = parseInt(document.getElementById("num_remolques").value) || 0;
-
-        for (let r = 1; r <= numRem; r++) {
-
-            await supabaseClient
-                .from('remolques')
-                .insert([{
-                    vehiculo_id: vehiculoId,
-
-                    tipo: document.getElementById(`tiporem_${r}`)?.value,
-                    marca: document.getElementById(`marcarem_${r}`)?.value,
-                    entidad: document.getElementById(`entidadrem_${r}`)?.value,
-                    capacidad: document.getElementById(`caprem_${r}`)?.value
-                }]);
-        }
-    }
-
     alert("✅ Reporte guardado correctamente");
 
-    // 🔥 PDF
+    // 🔥 GENERAR PDF SOLO SI ES GN
     const tipo = document.getElementById("supervisa_select").value;
+
     if (tipo === "GN") {
         await procesarPDF();
     }
