@@ -1559,29 +1559,12 @@ async function procesarPDF(){
 
     console.log("--- Iniciando proceso de PDF ---");
 
-const grado =
-document.getElementById('elaborgrado');
+    const grado = document.getElementById('grado');
+    const nombre = document.getElementById('nombre_gn');
 
-const nombre =
-document.getElementById('elabornombre');
+    if(grado) localStorage.setItem('oficial_grado', grado.value);
+    if(nombre) localStorage.setItem('oficial_nombre', nombre.value);
 
-if (grado?.value) {
-
-    localStorage.setItem(
-        'oficial_grado',
-        grado.value
-    );
-
-}
-
-if (nombre?.value) {
-
-    localStorage.setItem(
-        'oficial_nombre',
-        nombre.value
-    );
-
-}
     try {
         const { PDFDocument } = PDFLib;
         const fileInput = document.getElementById("archivoPdf");
@@ -1628,72 +1611,39 @@ try {
 } catch {
     mapaImagen = await pdfDoc.embedPng(mapaBytes);
 }
-let campoCroquis = null;
 
-try {
+                const campoCroquis = form.getTextField("coquiscroquis");
+                const widgets = campoCroquis.acroField.getWidgets();
 
-    campoCroquis =
-    form.getTextField("coquiscroquis");
+                const paginas = pdfDoc.getPages();
 
-} catch(e) {
+                if (paginas.length > 2) {
 
-    console.warn(
-        "Campo coquiscroquis no existe"
-    );
+                    const hojaDestino = paginas[2];
 
-}
+                    widgets.forEach((widget) => {
+                        const { x, y, width, height } = widget.getRectangle();
 
-if(campoCroquis){
+                        hojaDestino.drawImage(mapaImagen, {
+                            x: x + 2,
+                            y: y + 2,
+                            width: width - 4,
+                            height: height - 4,
+                        });
+                    });
 
-    const widgets =
-    campoCroquis.acroField.getWidgets();
+                    campoCroquis.setText("");
 
-    const paginas =
-    pdfDoc.getPages();
+                } else {
+                    console.warn("El PDF no tiene hoja 3");
+                }
 
-    if(paginas.length > 2){
+            } catch (e) {
+                console.warn("Error insertando mapa:", e);
+            }
+        }
 
-        const hojaDestino = paginas[2];
-
-        widgets.forEach(widget => {
-
-            const {
-                x,
-                y,
-                width,
-                height
-            } = widget.getRectangle();
-
-           hojaDestino.drawImage(
-    mapaImagen,
-    {
-        x: x + 2,
-        y: y + 2,
-        width: width - 4,
-        height: height - 4
-    }
-);
-
-});
-
-campoCroquis.setText("");
-
-} // fin paginas
-
-} // fin campoCroquis
-
-} catch(e) {
-
-    console.error(
-        "Error insertando mapa:",
-        e
-    );
-
-}
-
-} // fin mapaBytes
-
-// BOLETAS
+        // BOLETAS
 
 for (let i = 1; i <= 4; i++) {
 
@@ -1788,9 +1738,6 @@ setField("croquidia", fechaCroquis.getDate().toString());
 setField("croquimes", (fechaCroquis.getMonth() + 1).toString());
 setField("croquianio", fechaCroquis.getFullYear().toString());
 
-const numFallecidos = document.getElementById("fallecidos").value || "0";
-
-setField("fallecidos", numFallecidos);
 // Km
 setField("croquikm", document.getElementById("km")?.value);
 
@@ -1812,9 +1759,6 @@ setField("elabornombre1", document.getElementById("elabornombre1").value);
 setField("elaborexpediente", document.getElementById("elaborexpediente").value);
 setField("elaborexpediente1", document.getElementById("elaborexpediente1").value);
 
-// ===== FUNDAMENTO =====
-setField("artícu1", document.getElementById("art1").value);
-setField("artícu2", document.getElementById("art2").value);
 
 setField("aparta1", document.getElementById("apart1").value);
 setField("aparta2", document.getElementById("apart2").value);
@@ -1877,19 +1821,18 @@ const mapChecks = [
     ["suspension","suspension(elecestab)"],
     ["luces","luces"],
     ["motor_seg","motor segactpasvvehi"],
-  ["transmision","transmision"],
+    ["transmision","transmision"],
     ["frenosabs","frenosabs"],
     ["airbag","airbag"],
     ["asiento","asiento seg"],
     ["cintsegurid","cintsegurid"],
 
-["pav_asfalto","asfalto"],
-["pav_concreto","concreto"],
-["pav_terraceria","terraceria"],
-
+    ["asfalto","asfalto"],
+    ["concreto","concreto"],
+    ["terraceria","terraceria"],
 
     ["dedia","dedia"],
-   ["crepusculo","crepusculo"],
+    ["crepusculo","crepusculo"],
     ["denoche","denoche"],
     ["alumbpub","alumbpub"]
 ];
@@ -1956,7 +1899,7 @@ const circ = document.getElementById("circ_select").value;
 //  LIMPIAR TODOS
 [
 "imprudencia","veloexce","invacarril","Rabasoindebi",
-"Norespetoseñal","Norespetosema","Nocedipaso","Noguardodist",
+"Norespetosenal","Norespetosema","Nocedipaso","Noguardodist",
 "Viroindebi","Estacionado","ebriedad","estupefacientes",
 "Dormitando","Deslumbramiento","dispositivosdecomuni","discapacidad"
 ].forEach(c => setCheck(c, false));
@@ -2058,7 +2001,8 @@ const fecha = fechaInput ? new Date(fechaInput) : new Date();
 'Tramo': document.getElementById('tramo').value,
 
     // PARTICIPANTES
-    'total participantes': document.getElementById('total_participantes').value,
+    'total participantes':
+(parseInt(document.getElementById('num_veh')?.value) || 0).toString(),
 
     // VÍCTIMAS
     'Victimas': (
@@ -2203,7 +2147,7 @@ setField("Hacia (lado o esquina)", hacia);
 
 // Activar checkbox de peatón si hay datos
 const hayPeaton = desde || hacia;
-setCheck("Peaton2", !!hayPeaton);
+form.getTextField("Peaton2")
 
 // Estado del peatón
 const estadoPeaton = document.querySelector('input[name="estado_peaton"]:checked')?.value;
@@ -2415,7 +2359,8 @@ if (lesiones.length > 0) {
             heridos: heridos,
             fallecidos: fallecidos,
             num_vehiculos: parseInt(document.getElementById("num_veh").value) || 0,
-            total_participantes: parseInt(document.getElementById("total_participantes")?.value) || 0,
+            total_participantes:
+parseInt(document.getElementById("num_veh")?.value) || 0,
             causa: document.getElementById("causa_select").value,
             circunstancia: document.getElementById("circ_select").value,
             latitud: parseFloat(document.getElementById("lat").value) || null,
