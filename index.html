@@ -46,7 +46,6 @@ body {
     color: var(--color-secundario);
 }
 
-/* = FORMULARIO = */
 .form-container {
     max-width: 1100px;
     margin: 20px auto;
@@ -91,7 +90,6 @@ select {
     background-size: 18px;
 }
 
-/* = SECCIONES = */
 .sub-seccion {
     background: rgba(255,255,255,0.08);
     padding: 20px;
@@ -108,7 +106,6 @@ select {
     border-radius: 8px;
 }
 
-/* =GRID = */
 .grid-2 {
     display: grid;
     grid-template-columns: 60% 40%; 
@@ -148,10 +145,9 @@ select {
     justify-content: center;
 }
 
-/* = CHECKBOX GRID = */
 .check-grid label {
     display: grid;
-    grid-template-columns: 18px 1fr; /* checkbox + texto */
+    grid-template-columns: 18px 1fr; 
     align-items: center;
     gap: 8px;
 
@@ -162,17 +158,16 @@ select {
     padding: 4px 6px;
 }
 
-/* Checkbox */
 .check-grid input[type="checkbox"] {
     width: 16px;
     height: 16px;
     margin: 0;
     justify-self: center;
 }
-/* item individual */
+
 .check-item {
     display: grid;
-    grid-template-columns: 18px 1fr; /* columna fija para checkbox */
+    grid-template-columns: 18px 1fr;
     align-items: center;
     gap: 8px;
     font-size: 0.85em;
@@ -181,7 +176,6 @@ select {
     border-radius: 4px;
 }
 
-/* checkbox */
 .check-item input[type="checkbox"] {
     width: 16px;
     height: 16px;
@@ -189,12 +183,10 @@ select {
     justify-self: center;
 }
 
-/* texto */
 .check-item span {
     display: block;
 }
 
-/* = BOTONES = */
 .btn-submit {
     background: var(--color-botones);
     color: white;
@@ -219,7 +211,6 @@ select {
     margin-bottom: 5px;
 }
 
-/* = OTROS = */
 .file-input-container {
     background: var(--color-acentos);
     color: #333;
@@ -233,7 +224,6 @@ select {
     display: none;
 }
 
-/* = RESPONSIVE = */
 @media (max-width:768px){
 
     .header {
@@ -272,11 +262,10 @@ select {
         width:100%;
     }
 
-    /* checkboxes_celular */
     .check-grid {
         grid-template-columns: repeat(2, 1fr);
     }
-/* = BLOQUES DESPLEGABLES = */
+
 details {
     background: rgba(255,255,255,0.05);
     border-left: 4px solid var(--color-secundario);
@@ -293,7 +282,6 @@ summary {
     margin-bottom: 10px;
 }
 
-/* Animación */
 details[open] {
     animation: fadeIn 0.2s ease-in-out;
 }
@@ -529,7 +517,7 @@ details[open] {
             <label>Cantidad de Vehículos</label>
             <input type="number" id="num_veh" min="0" onchange="renderVehiculos()">
     
-    <!-- 🔹 TIPO DE CAUSA (CONTROL PRINCIPAL) -->
+    <!-- TIPO DE CAUSA -->
 <label>Tipo de causa</label>
 <select id="tipo_causa" onchange="toggleTipoCausa(this)">
     <option value="">Seleccione...</option>
@@ -538,7 +526,7 @@ details[open] {
     <option value="ambas">Ambas</option>
 </select>
 
-<!-- 🔹 BLOQUE: PROBABLES CAUSAS -->
+<!-- PROBABLES CAUSAS -->
 <div id="bloque_causas" class="hidden">
 
     <label>Probables causas</label>
@@ -589,7 +577,7 @@ details[open] {
 
 </div>
 
-<!-- 🔹 BLOQUE: CONDUCTOR -->
+<!-- CONDUCTOR -->
 <div id="bloque_conductor" class="hidden">
 
     <label>Circunstancias del conductor</label>
@@ -1247,7 +1235,6 @@ function dibujarHeridos() {
     }
 
 }
-
 
 function toggleCausaOtro(sel) {
 
@@ -2309,7 +2296,7 @@ let fotoUrl = "";
         }
     }
 
-// 4. Lógica de Heridos/Fallecidos
+// Heridos/Fallecidos
 
 let heridos =
 parseInt(document.getElementById("num_heridos").value) || 0;
@@ -2317,7 +2304,7 @@ parseInt(document.getElementById("num_heridos").value) || 0;
 let fallecidos =
 parseInt(document.getElementById("fallecidos").value) || 0;
 
-// Si además quieres contar fallecidos desde lesiones:
+
 const lesiones =
 document.querySelectorAll('[name^="lesion_"]');
 
@@ -2337,7 +2324,7 @@ if (lesiones.length > 0) {
     }
 }
 
-    // 5. Inserción en Supabase
+    // Supabase
    const { data: reporteInsertado, error } = await supabaseClient
     .from("reportes_accidentes")
     .insert([{
@@ -2351,7 +2338,6 @@ if (lesiones.length > 0) {
             ruta: document.getElementById("ruta").value,
             kilometro: document.getElementById("km").value,
 
-            // Guardamos "choque" general y el detalle en subtipo
             tipo_hecho: tipoSeleccionado.startsWith("choque") ? "choque" : tipoSeleccionado,
             subtipo_hecho: subtipo_final, 
             foto_url: fotoUrl,
@@ -2360,14 +2346,13 @@ if (lesiones.length > 0) {
             fallecidos: fallecidos,
             num_vehiculos: parseInt(document.getElementById("num_veh").value) || 0,
             total_participantes:
-parseInt(document.getElementById("num_veh")?.value) || 0,
+            parseInt(document.getElementById("num_veh")?.value) || 0,
             causa: document.getElementById("causa_select").value,
             circunstancia: document.getElementById("circ_select").value,
             latitud: parseFloat(document.getElementById("lat").value) || null,
             lng: parseFloat(document.getElementById("lng").value) || null,
-          estado: document.getElementById("estado").value,
-
-municipio: document.getElementById("municipio").value,
+            estado: document.getElementById("estado").value,
+            municipio: document.getElementById("municipio").value,
 
 centro_sict:
 document.getElementById("centro_sict")?.value || null
@@ -2452,21 +2437,28 @@ await enviarAlertaCorreo({
 alert("✅ Reporte guardado correctamente");
 
 // =========================
-// GENERAR PDF DESPUÉS
+// GENERAR PDF SOLO PARA GN
 // =========================
 
-try {
+const instancia = document.getElementById("supervisa_select").value;
 
-    await procesarPDF();
+if (instancia === "GN") {
 
-} catch(e) {
+    try {
 
-    console.error("Error PDF:", e);
+        await procesarPDF();
 
-    alert(
-        "⚠️ El reporte se guardó en Supabase,\n" +
-        "pero hubo un problema generando el PDF."
-    );
+    } catch(e) {
+
+        console.error("Error PDF:", e);
+
+        alert(
+            "⚠️ El reporte se guardó correctamente,\n" +
+            "pero hubo un problema generando el PDF."
+        );
+
+    }
+
 }
 
 //  GUARDAR VEHÍCULOS + CONDUCTORES + REMOLQUES
@@ -2533,7 +2525,7 @@ for (let i = 1; i <= numVeh; i++) {
     }
 
     // =========================
-    // 🚛 REMOLQUES (GLOBALES)
+    // REMOLQUES (GLOBALES)
     // =========================
     const numRem = parseInt(document.getElementById("num_remolques")?.value) || 0;
 
